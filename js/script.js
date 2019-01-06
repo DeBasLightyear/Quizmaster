@@ -22,10 +22,10 @@ function makeInputOption(typeOfInput, content){
     
     //HTML strings for each different type of label
     if (typeOfInput === "radio"){
-        labelElement = `<label><input type="${typeOfInput}" name="answer">${content}</label>`
+        labelElement = `<label><input type="${typeOfInput}" name="question" value="${content}">${content}</label>`
     }
     if (typeOfInput === "checkbox"){
-        labelElement = `<label><input type="${typeOfInput}" value="">${content}</label>`
+        labelElement = `<label><input type="${typeOfInput}" name="question" value="${content}>${content}</label>`
     }
     newDiv.innerHTML = labelElement
     return newDiv
@@ -42,16 +42,21 @@ function makeElements(type, contentArray){
     destination.appendChild(newDiv)
 }
 
-function makeRadioElements(contentArray){
-    makeElements("radio", contentArray)
-}
-function makeCheckboxElements(contentArray){
-    makeElements("checkbox", contentArray)
-}
-
 function emptyQuestionContainer(){
     const destination = document.getElementById("questionContainer")
     destination.innerHTML = ""
+}
+
+function getAnswer(){ //Returns an array of all checked answers
+    const answersLocation = document.getElementsByName("question")
+    let answers = []
+
+    for (answer of answersLocation){ //Get all checked options
+        if (answer.checked){
+            answers.push(answer.value)
+        }
+    }
+    return answers
 }
 
 //Classes and objects
@@ -61,7 +66,8 @@ class Question {
         this.typeOfAnswer = typeOfAnswer, //Radio or checkbox
         this.question = questionString, //The question itself
         this.answers = answerArray, //All options for answers
-        this.correctAnswer = correctAnswer
+        this.correctAnswer = correctAnswer //As an array
+        this.chosenAnswer = []
     }
 }
 
@@ -70,25 +76,40 @@ const quizMaster = {
     winLimit : 6,         //Minimal score needed to win
     questionIndex : 0,    //Variable to keep check of progress through array of questions
     questions : [
-        question1 = new Question("radio", "What said the chicken before crossing the road?", ["Wololo", "Foo"], "Wololo"),
-        question2 = new Question("radio", "Is grass green?", [true, false], true),
-        question3 = new Question("checkbox", "Who is the coolest dude on the face of the planet?", ["Chuck Norris", "Shigeru Miyamoto", "Yours truly"], "Yours truly")
+        question1 = new Question("radio", "What said the chicken before crossing the road?", ["Wololo", "Foo"], ["Wololo"]),
+        question2 = new Question("radio", "Is grass green?", [true, false], [true]),
+        question3 = new Question("checkbox", "Who is the coolest dude on the face of the planet?", ["Chuck Norris", "Shigeru Miyamoto", "Yours truly"], ["Yours truly", "Chuck Norris"])
     ],
 
-    askNextQuestion(){  //Swap out the previous question for the new question. TODO: still needs a button
+    askQuestion(){  //Swap out the previous question for the new question.
         const currentQuestion = this.questions[this.questionIndex]
         emptyQuestionContainer()
         makeQuestion(currentQuestion.question)
         makeElements(currentQuestion.typeOfAnswer, currentQuestion.answers)
-        this.questionIndex++ //Add 1 to questionindex
     },
     
-    retrieveAnswer(){
-        //Code for getting answer from document object
+    retrieveAnswer(){ //Storing answer from current question
+        const answersLocation = document.getElementsByName("question")
+        for (answer of answersLocation){ //Get all checked options
+            if (answer.checked){
+                this.questions[this.questionIndex]
+                .chosenAnswer
+                .push(answer.value)
+            }
+        }
+        console.log(this.questions[this.questionIndex])
     },
         
-    checkCorrectAnswer(question, givenAnswer){
-        return question.correctAnswer === givenAnswer
+    checkCorrectAnswer(){ //Return true if all correct options are given
+        const currentQuestion = this.questions[this.questionIndex]
+        let correctCounter = 0
+        for (answer of currentQuestion.chosenAnswer){
+            if (currentQuestion.correctAnswer.includes(answer)){
+               console.log(answer)
+                correctCounter++ 
+            }
+        }
+        return currentQuestion.correctAnswer.length === correctCounter
     },
 
     addPointToScore(questionResult){
@@ -107,13 +128,6 @@ const quizMaster = {
 // console.log(quizMaster.score)
 // console.log(quizMaster.addPointToScore(true))
 // console.log(quizMaster.score)
-const test = document.getElementById("questionCard")
-const testArray = ["Option A", "Option B", "Option C"]
 
-console.log(question1.question)
-console.log(question1.answers)
-console.log(question1.correctAnswer)
+quizMaster.askQuestion()
 
-console.log(question2.question)
-console.log(question2.answers)
-console.log(question2.correctAnswer)
